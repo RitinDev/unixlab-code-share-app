@@ -25,12 +25,13 @@ async fn chat_route(
     req: HttpRequest,
     stream: web::Payload,
     srv: web::Data<Addr<server::ChatServer>>,
+    room_name: web::Path<String>,
 ) -> Result<HttpResponse, Error> {
     ws::start(
         session::WsChatSession {
             id: 0,
             hb: Instant::now(),
-            room: "main".to_owned(),
+            room: room_name.into_inner(),
             name: None,
             addr: srv.get_ref().clone(),
         },
@@ -63,8 +64,10 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::from(app_state.clone()))
             .app_data(web::Data::new(server.clone()))
             .service(web::resource("/").to(index))
-            .route("/count", web::get().to(get_count))
+            // .route("/count", web::get().to(get_count))
             .route("/ws", web::get().to(chat_route))
+            .service(web::resource("/{room_id}").to(index))
+            .route("/ws/{room_id}", web::get().to(chat_route))
             .service(Files::new("/static", "./static"))
             .wrap(Logger::default())
     })

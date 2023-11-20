@@ -25,6 +25,7 @@ pub struct Message(pub String);
 #[rtype(usize)]
 pub struct Connect {
     pub addr: Recipient<Message>,
+    pub room: String,
 }
 
 /// Session is disconnected
@@ -105,6 +106,14 @@ impl ChatServer {
     }
 }
 
+impl ChatServer {
+    /// This method can be used to add a user to a room
+    fn add_to_room(&mut self, room_name: &str, id: usize) {
+        self.rooms.entry(room_name.to_owned()).or_default().insert(id);
+        self.send_message(room_name, "Someone joined", id);
+    }
+}
+
 /// Make actor from `ChatServer`
 impl Actor for ChatServer {
     /// We are going to use simple Context, we just need ability to communicate
@@ -119,20 +128,17 @@ impl Handler<Connect> for ChatServer {
     type Result = usize;
 
     fn handle(&mut self, msg: Connect, _: &mut Context<Self>) -> Self::Result {
-        println!("Someone joined");
-
-        // notify all users in same room
-        self.send_message("main", "Someone joined", 0);
+        println!("Someone joined room {}", msg.room);
 
         // register session with random id
         let id = self.rng.gen::<usize>();
-        self.sessions.insert(id, msg.addr);
+        self.sessions.insert(id, msg.addr.clone());
 
-        // auto join session to main room
-        self.rooms.entry("main".to_owned()).or_default().insert(id);
+        // add session to specified room
+        self.add_to_room(&msg.room, id);
 
         let count = self.visitor_count.fetch_add(1, Ordering::SeqCst);
-        self.send_message("main", &format!("Total visitors {count}"), 0);
+        self.send_message(&msg.room, &format!("Total visitors {count}"), 0);
 
         // send id back
         id
@@ -195,21 +201,21 @@ impl Handler<Join> for ChatServer {
 
     fn handle(&mut self, msg: Join, _: &mut Context<Self>) {
         let Join { id, name } = msg;
-        let mut rooms = Vec::new();
 
-        // remove session from all rooms
+        // Collect names of rooms from which the user is disconnecting
+        let mut rooms_to_notify: Vec<String> = Vec::new();
         for (n, sessions) in &mut self.rooms {
             if sessions.remove(&id) {
-                rooms.push(n.to_owned());
+                rooms_to_notify.push(n.clone());
             }
         }
-        // send message to other users
-        for room in rooms {
-            self.send_message(&room, "Someone disconnected", 0);
+
+        // Now send disconnect messages
+        for room in rooms_to_notify {
+            self.send_message(&room, "Someone disconnected", id);
         }
 
-        self.rooms.entry(name.clone()).or_default().insert(id);
-
-        self.send_message(&name, "Someone connected", id);
+        // Add session to the new room
+        self.add_to_room(&name, id);
     }
 }

@@ -118,31 +118,40 @@
       }
 
       function connect() {
-        disconnect()
-
-        const { location } = window
-
-        const proto = location.protocol.startsWith('https') ? 'wss' : 'ws'
-        const wsUri = `${proto}://${location.host}/ws`
-
-        log('Connecting...')
-        socket = new WebSocket(wsUri)
-
+        disconnect();
+      
+        const { location } = window;
+      
+        // Extract room name from the URL path
+        const path = location.pathname;
+        const roomName = path.substring(1); // Removes the leading '/'
+      
+        const proto = location.protocol.startsWith('https') ? 'wss' : 'ws';
+        // Append the room name to the WebSocket URI
+        const wsUri = `${proto}://${location.host}/ws/${roomName}`;
+      
+        log('Connecting...');
+        socket = new WebSocket(wsUri);
+      
         socket.onopen = () => {
-          log('Connected')
-          updateConnectionStatus()
-        }
-
+          log('Connected to room: ' + roomName);
+          updateConnectionStatus();
+        };
+      
         socket.onmessage = (ev) => {
-          log('Received: ' + ev.data, 'message')
-        }
-
+          log('Received: ' + ev.data, 'message');
+        };
+      
         socket.onclose = () => {
-          log('Disconnected')
-          socket = null
-          updateConnectionStatus()
-        }
-      }
+          log('Disconnected from room: ' + roomName);
+          socket = null;
+          updateConnectionStatus();
+        };
+      
+        socket.onerror = (error) => {
+          log('Error: ' + error.message, 'error');
+        };
+      }      
 
       function disconnect() {
         if (socket) {

@@ -74,6 +74,7 @@ impl Actor for WsChatSession {
         self.addr
             .send(server::Connect {
                 addr: addr.recipient(),
+                room: self.room.clone(),
             })
             .into_actor(self)
             .then(|res, act, ctx| {
