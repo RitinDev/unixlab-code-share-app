@@ -57,6 +57,11 @@
   <body>
     <h1>Chat!</h1>
 
+    <div id="room-entry">
+        <input type="text" id="room-name" placeholder="Enter room name">
+        <button id="join-room">Join Room</button>
+    </div>
+
     <div>
       <button id="connect">Connect</button>
       <span>Status:</span>
@@ -177,6 +182,28 @@
           $connectButton.textContent = 'Connect'
         }
       }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        const joinButton = document.getElementById('join-room');
+        const roomInput = document.getElementById('room-name');
+    
+        joinButton.addEventListener('click', function() {
+            const roomName = roomInput.value.trim();
+            if (roomName) {
+                // Redirect to the room-specific URL
+                window.location.href = '/' + roomName;
+            } else {
+                alert('Please enter a room name.');
+            }
+        });
+        
+        // Hide the room entry if the user is already in a specific room
+        if (window.location.pathname !== '/') {
+            document.getElementById('room-entry').style.display = 'none';
+        }
+    });
+    
+    
 
       $connectButton.addEventListener('click', () => {
         if (socket) {
