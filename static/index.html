@@ -215,6 +215,15 @@
         updateConnectionStatus()
       })
 
+      $input.addEventListener('input', (ev) => {
+        const text = $input.value;
+    
+        if (text) {
+            log('Sending: ' + text);
+            socket.send(text);
+        }
+    });    
+
       $form.addEventListener('submit', (ev) => {
         ev.preventDefault()
 
