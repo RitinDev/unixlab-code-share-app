@@ -20,6 +20,10 @@ async fn index() -> impl Responder {
     NamedFile::open_async("./static/index.html").await.unwrap()
 }
 
+async fn room() -> impl Responder {
+    NamedFile::open_async("./static/room.html").await.unwrap()
+}
+
 /// Entry point for our websocket route
 async fn chat_route(
     req: HttpRequest,
@@ -58,8 +62,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::from(app_state.clone()))
             .app_data(web::Data::new(server.clone()))
             .service(web::resource("/").to(index))
-            .route("/ws", web::get().to(chat_route))
-            .service(web::resource("/{room_id}").to(index))
+            .service(web::resource("/{room_id}").to(room))
             .route("/ws/{room_id}", web::get().to(chat_route))
             .service(Files::new("/static", "./static"))
             .wrap(Logger::default())

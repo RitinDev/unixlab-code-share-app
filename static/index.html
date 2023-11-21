@@ -1,243 +1,92 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Chat!</title>
 
+<head>
+    <title>UnixLab Code Share</title>
     <style>
-      :root {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-          Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-        font-size: 18px;
-      }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e8f4f8;
+            text-align: center;
+            padding: 50px;
+        }
 
-      input[type='text'] {
-        font-size: inherit;
-      }
+        #sessionForm {
+            background-color: #ffffff;
+            padding: 25px 40px;
+            border-radius: 12px;
+            display: inline-block;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
 
-      #log {
-        width: 30em;
-        height: 20em;
-        overflow: auto;
-        margin: 0.5em 0;
+        input,
+        button {
+            padding: 12px 20px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            transition: border-color 0.3s;
+        }
 
-        border: 1px solid black;
-      }
+        input:focus {
+            outline: none;
+            border-color: #4caf50;
+        }
 
-      #status {
-        padding: 0 0.2em;
-      }
+        button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
 
-      #text {
-        width: 17em;
-        padding: 0.5em;
-      }
+        button:hover {
+            background-color: #45a049;
+        }
 
-      .msg {
-        margin: 0;
-        padding: 0.25em 0.5em;
-      }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
 
-      .msg--status {
-        /* a light yellow */
-        background-color: #ffffc9;
-      }
+        h2 {
+            color: #333;
+        }
 
-      .msg--message {
-        /* a light blue */
-        background-color: #d2f4ff;
-      }
-
-      .msg--error {
-        background-color: pink;
-      }
+        p {
+            color: #666;
+        }
     </style>
-  </head>
+</head>
 
-  <body>
-    <h1>Chat!</h1>
-
-    <div id="room-entry">
-        <input type="text" id="room-name" placeholder="Enter room name">
-        <button id="join-room">Join Room</button>
+<body>
+    <div id="sessionForm">
+        <h2>🖥️ UnixLab Code Share 💻</h2>
+        <p>Enter a name for your session (special characters will be removed)</p>
+        <form onsubmit="return submitSession()">
+            <input type="text" id="sessionName" placeholder="Session Name" oninput="validateInput()">
+            <button id="submitButton" type="submit" disabled>Create Session</button>
+        </form>
     </div>
-
-    <div>
-      <button id="connect">Connect</button>
-      <span>Status:</span>
-      <span id="status">disconnected</span>
-    </div>
-
-    <div id="log"></div>
-
-    <form id="chatform">
-      <input type="text" id="text" />
-      <input type="submit" id="send" />
-    </form>
-
-    <hr />
-
-    <section>
-      <h2>Commands</h2>
-      <table style="border-spacing: 0.5em">
-        <tr>
-          <td>
-            <code>/list</code>
-          </td>
-          <td>list all available rooms</td>
-        </tr>
-        <tr>
-          <td>
-            <code>/join name</code>
-          </td>
-          <td>join room, if room does not exist, create new one</td>
-        </tr>
-        <tr>
-          <td>
-            <code>/name name</code>
-          </td>
-          <td>set session name</td>
-        </tr>
-        <tr>
-          <td>
-            <code>some message</code>
-          </td>
-          <td>just string, send message to all peers in same room</td>
-        </tr>
-      </table>
-    </section>
 
     <script>
-      const $status = document.querySelector('#status')
-      const $connectButton = document.querySelector('#connect')
-      const $log = document.querySelector('#log')
-      const $form = document.querySelector('#chatform')
-      const $input = document.querySelector('#text')
+        function validateInput() {
+            var input = document.getElementById("sessionName");
+            var submitButton = document.getElementById("submitButton");
+            input.value = input.value.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
 
-      /** @type {WebSocket | null} */
-      var socket = null
-
-      function log(msg, type = 'status') {
-        $log.innerHTML += `<p class="msg msg--${type}">${msg}</p>`
-        $log.scrollTop += 1000
-      }
-
-      function connect() {
-        disconnect();
-      
-        const { location } = window;
-      
-        // Extract room name from the URL path
-        const path = location.pathname;
-        const roomName = path.substring(1); // Removes the leading '/'
-      
-        const proto = location.protocol.startsWith('https') ? 'wss' : 'ws';
-        // Append the room name to the WebSocket URI
-        const wsUri = `${proto}://${location.host}/ws/${roomName}`;
-      
-        log('Connecting...');
-        socket = new WebSocket(wsUri);
-      
-        socket.onopen = () => {
-          log('Connected to room: ' + roomName);
-          updateConnectionStatus();
-        };
-      
-        socket.onmessage = (ev) => {
-          log('Received: ' + ev.data, 'message');
-        };
-      
-        socket.onclose = () => {
-          log('Disconnected from room: ' + roomName);
-          socket = null;
-          updateConnectionStatus();
-        };
-      
-        socket.onerror = (error) => {
-          log('Error: ' + error.message, 'error');
-        };
-      }      
-
-      function disconnect() {
-        if (socket) {
-          log('Disconnecting...')
-          socket.close()
-          socket = null
-
-          updateConnectionStatus()
-        }
-      }
-
-      function updateConnectionStatus() {
-        if (socket) {
-          $status.style.backgroundColor = 'transparent'
-          $status.style.color = 'green'
-          $status.textContent = `connected`
-          $connectButton.innerHTML = 'Disconnect'
-          $input.focus()
-        } else {
-          $status.style.backgroundColor = 'red'
-          $status.style.color = 'white'
-          $status.textContent = 'disconnected'
-          $connectButton.textContent = 'Connect'
-        }
-      }
-
-      document.addEventListener('DOMContentLoaded', function() {
-        const joinButton = document.getElementById('join-room');
-        const roomInput = document.getElementById('room-name');
-    
-        joinButton.addEventListener('click', function() {
-            const roomName = roomInput.value.trim();
-            if (roomName) {
-                // Redirect to the room-specific URL
-                window.location.href = '/' + roomName;
-            } else {
-                alert('Please enter a room name.');
-            }
-        });
-        
-        // Hide the room entry if the user is already in a specific room
-        if (window.location.pathname !== '/') {
-            document.getElementById('room-entry').style.display = 'none';
-        }
-    });
-    
-    
-
-      $connectButton.addEventListener('click', () => {
-        if (socket) {
-          disconnect()
-        } else {
-          connect()
+            submitButton.disabled = input.value.length === 0;
         }
 
-        updateConnectionStatus()
-      })
-
-      $input.addEventListener('input', (ev) => {
-        const text = $input.value;
-    
-        if (text) {
-            log('Sending: ' + text);
-            socket.send(text);
+        function submitSession() {
+            var name = document.getElementById("sessionName").value;
+            window.location.href = '/' + encodeURIComponent(name);
+            return false; // Prevents the default form submission
         }
-    });    
 
-      $form.addEventListener('submit', (ev) => {
-        ev.preventDefault()
-
-        const text = $input.value
-
-        log('Sending: ' + text)
-        socket.send(text)
-
-        $input.value = ''
-        $input.focus()
-      })
-
-      updateConnectionStatus()
-
+        validateInput();
     </script>
-  </body>
+</body>
+
 </html>
