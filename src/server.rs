@@ -179,21 +179,6 @@ impl Handler<ClientMessage> for ChatServer {
     }
 }
 
-/// Handler for `ListRooms` message.
-impl Handler<ListRooms> for ChatServer {
-    type Result = MessageResult<ListRooms>;
-
-    fn handle(&mut self, _: ListRooms, _: &mut Context<Self>) -> Self::Result {
-        let mut rooms = Vec::new();
-
-        for key in self.rooms.keys() {
-            rooms.push(key.to_owned())
-        }
-
-        MessageResult(rooms)
-    }
-}
-
 /// Join room, send disconnect message to old room
 /// send join message to new room
 impl Handler<Join> for ChatServer {
