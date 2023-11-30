@@ -53,7 +53,7 @@ async fn main() -> std::io::Result<()> {
     let app_state = Arc::new(AtomicUsize::new(0));
 
     // start chat server actor
-    let server = server::ChatServer::new(app_state.clone()).start();
+    let server = server::ChatServer::new().start();
 
     log::info!("starting HTTP server at http://localhost:8080");
 

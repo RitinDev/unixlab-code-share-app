@@ -2,13 +2,7 @@
 //! And manages available rooms. Peers send messages to other peers in same
 //! room through `ChatServer`.
 
-use std::{
-    collections::{HashMap, HashSet},
-    sync::{
-        atomic::{AtomicUsize, Ordering},
-        Arc,
-    },
-};
+use std::collections::{HashMap, HashSet};
 
 use actix::prelude::*;
 use rand::{self, rngs::ThreadRng, Rng};
@@ -73,11 +67,10 @@ pub struct ChatServer {
     sessions: HashMap<usize, Recipient<Message>>,
     rooms: HashMap<String, HashSet<usize>>,
     rng: ThreadRng,
-    visitor_count: Arc<AtomicUsize>,
 }
 
 impl ChatServer {
-    pub fn new(visitor_count: Arc<AtomicUsize>) -> ChatServer {
+    pub fn new() -> ChatServer {
         // default room
         let mut rooms = HashMap::new();
         rooms.insert("main".to_owned(), HashSet::new());
@@ -86,7 +79,6 @@ impl ChatServer {
             sessions: HashMap::new(),
             rooms,
             rng: rand::thread_rng(),
-            visitor_count,
         }
     }
 }
@@ -136,9 +128,6 @@ impl Handler<Connect> for ChatServer {
 
         // add session to specified room
         self.add_to_room(&msg.room, id);
-
-        let count = self.visitor_count.fetch_add(1, Ordering::SeqCst);
-        self.send_message(&msg.room, &format!("Total visitors {count}"), 0);
 
         // send id back
         id
