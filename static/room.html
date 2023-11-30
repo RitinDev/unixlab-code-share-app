@@ -24,10 +24,6 @@
         border: 1px solid black;
       }
 
-      #status {
-        padding: 0 0.2em;
-      }
-
       #text {
         width: 17em;
         padding: 0.5em;
@@ -60,12 +56,6 @@
     <div id="room-entry">
         <input type="text" id="room-name" placeholder="Enter room name">
         <button id="join-room">Join Room</button>
-    </div>
-
-    <div>
-      <button id="connect">Connect</button>
-      <span>Status:</span>
-      <span id="status">disconnected</span>
     </div>
 
     <div id="log"></div>
@@ -110,7 +100,7 @@
       
         socket.onopen = () => {
           log('Connected to room: ' + roomName);
-          updateConnectionStatus();
+          ;
         };
       
         socket.onmessage = (ev) => {
@@ -120,7 +110,7 @@
         socket.onclose = () => {
           log('Disconnected from room: ' + roomName);
           socket = null;
-          updateConnectionStatus();
+          ;
         };
       
         socket.onerror = (error) => {
@@ -134,22 +124,7 @@
           socket.close()
           socket = null
 
-          updateConnectionStatus()
-        }
-      }
-
-      function updateConnectionStatus() {
-        if (socket) {
-          $status.style.backgroundColor = 'transparent'
-          $status.style.color = 'green'
-          $status.textContent = `connected`
-          $connectButton.innerHTML = 'Disconnect'
-          $input.focus()
-        } else {
-          $status.style.backgroundColor = 'red'
-          $status.style.color = 'white'
-          $status.textContent = 'disconnected'
-          $connectButton.textContent = 'Connect'
+          
         }
       }
 
@@ -172,18 +147,16 @@
             document.getElementById('room-entry').style.display = 'none';
         }
     });
-    
-    
 
-      $connectButton.addEventListener('click', () => {
+      window.onload = () => {
         if (socket) {
           disconnect()
-        } else {
-          connect()
         }
 
-        updateConnectionStatus()
-      })
+        connect()
+      }
+
+      window.onbeforeunload = disconnect;
 
       $input.addEventListener('input', (ev) => {
         const text = $input.value;
@@ -197,16 +170,10 @@
       $form.addEventListener('submit', (ev) => {
         ev.preventDefault()
 
-        const text = $input.value
-
-        log('Sending: ' + text)
-        socket.send(text)
-
+        // Clear the input
         $input.value = ''
-        $input.focus()
-      })
 
-      updateConnectionStatus()
+      })
 
     </script>
   </body>
