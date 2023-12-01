@@ -1,14 +1,14 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const $log = document.querySelector('#log');
+    // const $log = document.querySelector('#log');
     const $codeText = document.querySelector('#code-text');
   
     /** @type {WebSocket | null} */
     var socket = null;
   
-    function log(msg, type = 'status') {
-      $log.innerHTML += `<p class="msg msg--${type}">${msg}</p>`;
-      $log.scrollTop += 1000;
-    }
+    // function log(msg, type = 'status') {
+    //   $log.innerHTML += `<p class="msg msg--${type}">${msg}</p>`;
+    //   $log.scrollTop += 1000;
+    // }
   
     function connect() {
       disconnect();
@@ -20,11 +20,11 @@ document.addEventListener('DOMContentLoaded', function() {
       const proto = location.protocol.startsWith('https') ? 'wss' : 'ws';
       const wsUri = `${proto}://${location.host}/ws/${roomName}`;
   
-      log('Connecting...');
+      // log('Connecting...');
       socket = new WebSocket(wsUri);
   
       socket.onopen = () => {
-        log('Connected to room: ' + roomName);
+        // log('Connected to room: ' + roomName);
       };
   
       socket.onmessage = (ev) => {
@@ -33,18 +33,18 @@ document.addEventListener('DOMContentLoaded', function() {
       };
   
       socket.onclose = () => {
-        log('Disconnected from room: ' + roomName);
+        // log('Disconnected from room: ' + roomName);
         socket = null;
       };
   
       socket.onerror = (error) => {
-        log('Error: ' + error.message, 'error');
+        // log('Error: ' + error.message, 'error');
       };
     }
   
     function disconnect() {
       if (socket) {
-        log('Disconnecting...');
+        // log('Disconnecting...');
         socket.close();
         socket = null;
       }
