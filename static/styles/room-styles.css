@@ -45,18 +45,6 @@
     overflow: auto;
   }
 
-  #code-editor textarea {
-    width: 100%;
-    height: 100%;
-    background-color: transparent;
-    color: var(--color-text);
-    font-size: var(--font-size-default);
-    border: none;
-    padding: 0.5rem;
-    outline: none;
-    resize: none;
-  }
-
   #code-editor div[contenteditable] {
     width: 100%;
     height: 100%;
@@ -78,21 +66,4 @@
 
   #code-text {
     font-family: Consolas, monaco, monospace;
-  }
-
-  .msg {
-    padding: 0.25em 0.5em;
-    border-bottom: 1px solid #eee;
-  }
-
-  .msg--status {
-    background-color: #ffffc9;
-  }
-
-  .msg--message {
-    background-color: #d2f4ff;
-  }
-
-  .msg--error {
-    background-color: pink;
   }
