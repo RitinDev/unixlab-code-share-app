@@ -28,8 +28,8 @@ document.addEventListener('DOMContentLoaded', function() {
       };
   
       socket.onmessage = (ev) => {
-        // log('Received code update', 'message');
-        $codeText.value = ev.data; // Update the code editor with the received code
+        // Convert line breaks from \n to HTML format
+        $codeText.innerHTML = ev.data.replace(/\n/g, '<br>');
       };
   
       socket.onclose = () => {
@@ -50,11 +50,11 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    $codeText.addEventListener('input', (ev) => {
+    $codeText.addEventListener('input', () => {
       if (socket && socket.readyState === WebSocket.OPEN) {
-        const code = $codeText.value;
-        socket.send(code); // Send the code text to the WebSocket server
-        // log('Sending code update...');
+        // Convert line breaks to \n before sending
+        const code = $codeText.innerHTML.replace(/<br>/g, '\n').replace(/<div>/g, '\n').replace(/<\/div>/g, '');
+        socket.send(code);
       }
     });
   

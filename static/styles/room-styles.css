@@ -57,6 +57,25 @@
     resize: none;
   }
 
+  #code-editor div[contenteditable] {
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    color: var(--color-text);
+    font-size: var(--font-size-default);
+    border: none;
+    padding: 0.5rem;
+    outline: none;
+    overflow: auto;
+    white-space: pre-wrap; /* Keeps the formatting of the code */
+  }
+  
+  #code-editor div[contenteditable]:empty:before {
+    content: attr(placeholder);
+    color: grey;
+    display: block; /* For new lines */
+  }
+
   #code-text {
     font-family: Consolas, monaco, monospace;
   }
