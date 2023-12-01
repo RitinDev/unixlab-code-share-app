@@ -28,6 +28,15 @@ document.addEventListener('DOMContentLoaded', function() {
       };
   
       socket.onmessage = (ev) => {
+        if (ev.data.startsWith('Code Share Server:')) {
+          $codeText.innerHTML += `<br><br><span class="server-msg">${ev.data}</span>`;
+          setTimeout(() => {
+            const $serverMsgs = document.querySelectorAll('.server-msg');
+            $serverMsgs.forEach($msg => $msg.remove());
+          }, 2000);
+          return;
+        }
+        
         // Convert line breaks from \n to HTML format
         $codeText.innerHTML = ev.data.replace(/\n/g, '<br>');
       };

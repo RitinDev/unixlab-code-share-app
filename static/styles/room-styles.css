@@ -67,3 +67,7 @@
   #code-text {
     font-family: Consolas, monaco, monospace;
   }
+
+  .server-msg {
+    color: #50fa7b;
+  }

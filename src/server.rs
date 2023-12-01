@@ -10,7 +10,11 @@ use rand::{self, rngs::ThreadRng, Rng};
 /// Chat server sends this messages to session
 #[derive(Message)]
 #[rtype(result = "()")]
-pub struct Message(pub String);
+pub struct Message {
+    pub text: String,
+    pub from_server: bool,
+}
+
 
 /// Message for chat server communications
 
@@ -85,12 +89,15 @@ impl ChatServer {
 
 impl ChatServer {
     /// Send message to all users in the room
-    fn send_message(&self, room: &str, message: &str, skip_id: usize) {
+    fn send_message(&self, room: &str, message: &str, skip_id: usize, from_server: bool) {
         if let Some(sessions) = self.rooms.get(room) {
             for id in sessions {
                 if *id != skip_id {
                     if let Some(addr) = self.sessions.get(id) {
-                        addr.do_send(Message(message.to_owned()));
+                        addr.do_send(Message {
+                            text: message.to_owned(),
+                            from_server,
+                        });
                     }
                 }
             }
@@ -102,7 +109,7 @@ impl ChatServer {
     /// This method can be used to add a user to a room
     fn add_to_room(&mut self, room_name: &str, id: usize) {
         self.rooms.entry(room_name.to_owned()).or_default().insert(id);
-        self.send_message(room_name, "Someone joined", id);
+        self.send_message(room_name, "Someone joined", id, true);
     }
 }
 
@@ -154,7 +161,7 @@ impl Handler<Disconnect> for ChatServer {
         }
         // send message to other users
         for room in rooms {
-            self.send_message(&room, "Someone disconnected", 0);
+            self.send_message(&room, "Someone disconnected", 0, true);
         }
     }
 }
@@ -164,7 +171,7 @@ impl Handler<ClientMessage> for ChatServer {
     type Result = ();
 
     fn handle(&mut self, msg: ClientMessage, _: &mut Context<Self>) {
-        self.send_message(&msg.room, msg.msg.as_str(), msg.id);
+        self.send_message(&msg.room, msg.msg.as_str(), msg.id, false);
     }
 }
 
@@ -186,7 +193,7 @@ impl Handler<Join> for ChatServer {
 
         // Now send disconnect messages
         for room in rooms_to_notify {
-            self.send_message(&room, "Someone disconnected", id);
+            self.send_message(&room, "Someone disconnected", id, true);
         }
 
         // Add session to the new room
